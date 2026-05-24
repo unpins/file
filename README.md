@@ -23,7 +23,7 @@ Or run without installing:
 unpin run file
 ```
 
-`unpin` also extracts the companion `magic.mgc` database into `share/misc/` next to the binary, so `file <path>` works out of the box.
+The compiled magic database is embedded in the binary, so `file <path>` works without any companion data files.
 
 ## Build locally
 
@@ -42,4 +42,11 @@ The first invocation will offer to add the [unpins.cachix.org](https://unpins.ca
 
 ## Manual download
 
-The [Releases](https://github.com/unpins/file/releases) page has standalone binaries and a `.tar.zst` data archive (the compiled `magic.mgc` database plus man pages) for manual download. Drop `magic.mgc` next to the binary (or under `share/misc/` one level up) and `file` will pick it up automatically.
+The [Releases](https://github.com/unpins/file/releases) page has standalone binaries plus a `.tar.zst` data archive containing the man pages.
+
+## Build notes
+
+- **Windows** uses mingw. file only opens paths it receives on the command line — it doesn't enumerate directories — so the mingw cross builds cleanly without any wide-char filesystem shims.
+- **Embedded magic database**: the compiled `magic.mgc` (~8.5 MB raw) is baked into the binary. The release artifact is itself zstd-compressed for download, so the disk size is the only place the raw blob shows — `.zst` end-to-end is ~470 KB regardless. file looks up its magic via the embedded buffer by default; `-m <path>` and `$MAGIC` still work for users who want to override.
+- **`--version`** prints `magic file from (embedded)` to signal the embed path is in use.
+- **No upstream features are disabled; no platforms are excluded.**
