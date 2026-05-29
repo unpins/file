@@ -40,7 +40,6 @@
     unpins-lib.lib.mkStandaloneFlake {
       inherit self;
       name = "file";
-      package_data = true;
 
       build = pkgs:
         (pkgs.pkgsStatic.file.overrideAttrs (old: {
