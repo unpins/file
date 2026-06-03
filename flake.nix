@@ -81,6 +81,12 @@
         let
           cross = unpins-lib.lib.mingwStaticCross pkgs;
           libgnurxStatic = cross.windows.libgnurx.overrideAttrs (old: {
+            # GCC 15 (nixpkgs 26.05) defaults to -std=gnu23, where `bool`,
+            # `true`, `false` become keywords. libgnurx's vintage glibc regex
+            # (regex_internal.h) still uses `bool` as a plain identifier, so
+            # the C23 keyword makes regex.o fail with "expected ';' before
+            # 'bool'". Pin the pre-C23 dialect to restore identifier `bool`.
+            NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -std=gnu17";
             postBuild = (old.postBuild or "") + ''
               $AR rcs libgnurx-real.a regex.o
             '';

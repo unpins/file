@@ -9,21 +9,21 @@ Standalone build of [file](https://www.darwinsys.com/file/).
 
 Part of the [unpins](https://unpins.org) project — native single-binary builds with no third-party runtime dependencies.
 
-## Installation
+## Usage
 
-Install with [unpin](https://github.com/unpins/unpin):
-
-```bash
-unpin file
-```
-
-Or run without installing:
+Run the `file` program with [unpin](https://github.com/unpins/unpin):
 
 ```bash
-unpin run file
+unpin file /bin/sh    # identify a file's type
 ```
 
-The compiled magic database is embedded in the binary, so `file <path>` works without any companion data files.
+The compiled magic database is embedded in the binary, so this works without any companion data files.
+
+To install it onto your PATH:
+
+```bash
+unpin install file
+```
 
 ## Build locally
 
