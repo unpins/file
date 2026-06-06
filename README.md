@@ -47,7 +47,6 @@ The [Releases](https://github.com/unpins/file/releases) page has standalone bina
 ## Build notes
 
 - **Windows** uses mingw. file only opens paths it receives on the command line — it doesn't enumerate directories — so the mingw cross builds cleanly without any wide-char filesystem shims.
-- **Embedded magic database**: the compiled `magic.mgc` (~8.5 MB raw) is baked into the binary. The release artifact is itself zstd-compressed for download, so the disk size is the only place the raw blob shows — `.zst` end-to-end is ~470 KB regardless. file looks up its magic via the embedded buffer by default; `-m <path>` and `$MAGIC` still work for users who want to override.
-- **`--version`** prints `magic file from (embedded)` to signal the embed path is in use.
+- **Embedded magic database**: the compiled `magic.mgc` (~8.5 MB) is baked into the binary, so there are no companion data files. file looks up its magic via the embedded buffer by default; `-m <path>` and `$MAGIC` still work for users who want to override. `--version` prints `magic file from (embedded)` to signal the embed path is in use.
 - **Embedded man pages**: `file.1` (plus `magic.4` / `libmagic.3`) are baked into the binary — read with `unpin man file`. No companion data files are shipped.
 - **No upstream features are disabled; no platforms are excluded.**
