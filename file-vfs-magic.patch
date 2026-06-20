@@ -1,0 +1,57 @@
+Load the compiled magic database from the embedded ZIP (Pattern 2).
+
+Upstream file expects $datadir/share/misc/magic.mgc on disk (or $MAGIC, or
+~/.magic.mgc). For unpins we ship a single binary: magic.mgc rides the binary's
+single metadata/runtime ZIP at EOF (withRuntimeData), zstd-compressed (~340 KB
+vs ~10.6 MB raw -- the db is sparse and compresses ~31x). file.c::load() pulls
+it back via unpin_load_embedded_magic() (unpin_magic.c, on the unpin-vfs
+self-EOF reader) and hands the buffer to magic_load_buffers when no magic file
+is given on the command line and $MAGIC is unset; user-supplied -m or $MAGIC
+still go through the regular magic_load path so power users can override.
+
+This replaces the older compiled-in-blob approach (embedded_magic.h via xxd),
+which baked the raw 10.6 MB db into the binary's rodata -- and, for the mega
+multicall, into its bitcode module. The ZIP overlay carries it compressed and is
+merged into the mega like the man pages.
+
+--- a/src/file.c
++++ b/src/file.c
+@@ -67,6 +67,8 @@
+ #include <ctype.h>
+ #endif
+
++#include "unpin_magic.h"
++
+ #if defined(HAVE_GETOPT_H) && defined(HAVE_STRUCT_OPTION)
+ # include <getopt.h>
+ # ifndef HAVE_GETOPT_LONG
+@@ -327,7 +329,9 @@
+ #endif
+ 			break;
+ 		case 'v':
+-			if (magicfile == NULL)
++			if (magicfile == NULL && getenv("MAGIC") == NULL)
++				magicfile = "(embedded)";
++			else if (magicfile == NULL)
+ 				magicfile = magic_getpath(magicfile, action);
+ 			(void)fprintf(stdout, "%s-%s\n", file_getprogname(),
+ 			    VERSION);
+@@ -493,6 +497,18 @@
+ 		file_warn("Can't create magic");
+ 		return NULL;
+ 	}
++
++	if (magicfile == NULL && getenv("MAGIC") == NULL) {
++		void *bp;
++		size_t sz;
++		if (unpin_load_embedded_magic(&bp, &sz) == 0 &&
++		    magic_load_buffers(magic, &bp, &sz, 1) == 0) {
++			if ((e = magic_error(magic)) != NULL)
++				file_warn("%s", e);
++			return magic;
++		}
++	}
++
+ 	if (magic_load(magic, magicfile) == -1) {
+ 		file_warn("%s", magic_error(magic));
+ 		magic_close(magic);
