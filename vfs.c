@@ -431,7 +431,9 @@ int unpin_vfs_access(const char *path, int mode)       { return __wrap_win32_acc
 /* ======================================================================= */
 #else /* POSIX: Linux (memfd) and macOS (mkstemp) */
 #include <unistd.h>
-#include <sys/syscall.h>
+#ifndef __APPLE__
+#include <sys/syscall.h> /* SYS_memfd_create — Linux only; macOS uses mkstemp */
+#endif
 #ifdef UNPIN_VFS_DIRS
 #include <stdio.h>
 #include <dirent.h>
