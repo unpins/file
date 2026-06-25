@@ -89,7 +89,6 @@
         # ZIP (like the man pages).
         runtimeDataRoot = pkgs: "${magicDbFor pkgs}";
         windows = true;
-        darwin = true;
       };
 
       build = pkgs:
