@@ -26,11 +26,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1782327645,
-        "narHash": "sha256-USExVq/3KcPeS8VkB7yHui4Jvo9OPEABSA8RGI6SRbI=",
+        "lastModified": 1782358552,
+        "narHash": "sha256-8WWK0woS3pDpKwUIuOkrRvBIYEEcS9Zci0mLmWCUZpY=",
         "owner": "unpins",
         "repo": "nix-lib",
-        "rev": "211b7aad3ccceaa21a7e4d54d80d6ee8127fcfc0",
+        "rev": "feefd040d4716981e675b9cae6df349b80f9bc80",
         "type": "github"
       },
       "original": {
