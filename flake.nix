@@ -83,7 +83,6 @@
 
       engine = "unpin-llvm";
       multicall = {
-        inferLinkInputs = true;
         programs = [{ name = "file"; }];
         # Points the mega at the magic db tree so it's merged into the mega's
         # ZIP (like the man pages).
@@ -91,24 +90,30 @@
         windows = true;
       };
 
+      # PRISTINE VFS base (no embed). The magic.mgc runtime tree is embedded once,
+      # post-build, via runtimeEmbed → unpinEmbedWrap (man is auto-harvested since
+      # embedMan defaults on); the same magic db is declared to the mega via
+      # multicall.runtimeDataRoot above.
       build = pkgs:
-        lib.withRuntimeData pkgs
-          {
-            primary = "file";
-            stage = ''
-              cp ${magicDbFor pkgs}/magic.mgc "$__unpin_stage/magic.mgc"
-              chmod u+w "$__unpin_stage/magic.mgc"
-            '';
-          }
-          (injectVfs pkgs (pkgs.pkgsStatic.file.overrideAttrs (old: {
-            # nix-lib's filterEnableStaticOnDarwin strips --disable-shared (to
-            # keep libSystem dynamic), but then file emits a stray libmagic dylib.
-            # Push it back via configureFlagsArray, out of the Nix-list filter's
-            # reach.
-            preConfigure = (old.preConfigure or "") + ''
-              configureFlagsArray+=("--disable-shared" "--enable-static")
-            '';
-          })));
+        injectVfs pkgs (pkgs.pkgsStatic.file.overrideAttrs (old: {
+          # nix-lib's filterEnableStaticOnDarwin strips --disable-shared (to
+          # keep libSystem dynamic), but then file emits a stray libmagic dylib.
+          # Push it back via configureFlagsArray, out of the Nix-list filter's
+          # reach.
+          preConfigure = (old.preConfigure or "") + ''
+            configureFlagsArray+=("--disable-shared" "--enable-static")
+          '';
+        }));
+
+      runtimeEmbed =
+        let stage = pkgs: ''
+          cp ${magicDbFor pkgs}/magic.mgc "$__unpin_stage/magic.mgc"
+          chmod u+w "$__unpin_stage/magic.mgc"
+        '';
+        in {
+          native = pkgs: base: { runtimeStage = stage pkgs; };
+          windows = pkgs: base: { runtimeStage = stage pkgs; };
+        };
 
       windowsBuild = pkgs:
         let
@@ -139,24 +144,16 @@
             '';
           });
         in
-        # mkStandaloneFlake doesn't auto-apply withRuntimeData on the windows
-        # chain (only withMan), so wrap it here like the Linux `build` does.
-        lib.withRuntimeData pkgs
-          {
-            primary = "file";
-            stage = ''
-              cp ${magicDbFor pkgs}/magic.mgc "$__unpin_stage/magic.mgc"
-              chmod u+w "$__unpin_stage/magic.mgc"
-            '';
-          }
-          (injectVfs pkgs
-            ((cross.file.override { libgnurx = libgnurxStatic; }).overrideAttrs (old: {
-              # cdf.h aliases timespec→timeval on WIN32, a pre-mingw-w64 shim
-              # that mismatches modern mingw's 64-bit tv_sec. Remove it.
-              patches = (old.patches or [ ]) ++ [ ./file-mingw.patch ];
-              # -all-static: the engine's mingw CRT has no DLL startup, so the
-              # PE32+ must link fully static.
-              makeFlags = (old.makeFlags or [ ]) ++ [ "LDFLAGS=-all-static" ];
-            })));
+        # PRISTINE VFS base; the magic.mgc runtime is embedded post-build via
+        # runtimeEmbed.windows above (the single embed path).
+        injectVfs pkgs
+          ((cross.file.override { libgnurx = libgnurxStatic; }).overrideAttrs (old: {
+            # cdf.h aliases timespec→timeval on WIN32, a pre-mingw-w64 shim
+            # that mismatches modern mingw's 64-bit tv_sec. Remove it.
+            patches = (old.patches or [ ]) ++ [ ./file-mingw.patch ];
+            # -all-static: the engine's mingw CRT has no DLL startup, so the
+            # PE32+ must link fully static.
+            makeFlags = (old.makeFlags or [ ]) ++ [ "LDFLAGS=-all-static" ];
+          }));
     };
 }
