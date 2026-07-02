@@ -49,4 +49,5 @@ The [Releases](https://github.com/unpins/file/releases) page has standalone bina
 - **Windows** uses mingw. file only opens paths it receives on the command line — it doesn't enumerate directories — so the mingw cross builds cleanly without any wide-char filesystem shims.
 - **Embedded magic database**: the compiled `magic.mgc` (~8.5 MB) is baked into the binary, so there are no companion data files. file looks up its magic via the embedded buffer by default; `-m <path>` and `$MAGIC` still work for users who want to override. `--version` prints `magic file from (embedded)` to signal the embed path is in use.
 - **Embedded man pages**: `file.1` (plus `magic.4` / `libmagic.3`) are baked into the binary — read with `unpin man file`. No companion data files are shipped.
+- **Tests**: file's test suite runs on native builds (0 failures under static-musl) and auto-skips on cross targets the build host can't execute. The harness builds its own `test` binary against `libmagic` + the in-tree magic db, so it's independent of the embedded-magic path the shipped `file` uses.
 - **No upstream features are disabled; no platforms are excluded.**

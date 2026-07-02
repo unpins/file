@@ -96,6 +96,12 @@
       # multicall.runtimeDataRoot above.
       build = pkgs:
         injectVfs pkgs (pkgs.pkgsStatic.file.overrideAttrs (old: {
+          # Run file's test suite on native runners; auto-skips on crosses the
+          # build host can't execute. The harness builds its own `test` binary
+          # against libmagic + the in-tree magic db, so it's independent of our
+          # embedded-VFS magic path (which only touches the `file` program).
+          doCheck = pkgs.pkgsStatic.file.stdenv.buildPlatform.canExecute
+            pkgs.pkgsStatic.file.stdenv.hostPlatform;
           # nix-lib's filterEnableStaticOnDarwin strips --disable-shared (to
           # keep libSystem dynamic), but then file emits a stray libmagic dylib.
           # Push it back via configureFlagsArray, out of the Nix-list filter's
