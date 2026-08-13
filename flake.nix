@@ -80,6 +80,8 @@
     lib.mkStandaloneFlake {
       inherit self;
       name = "file";
+      smoke = [ "--version" ];
+      smokePattern = "^file-[0-9]+\\.[0-9]+";
 
       engine = "unpin-llvm";
       multicall = {
