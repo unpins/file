@@ -81,7 +81,11 @@
       inherit self;
       name = "file";
       smoke = [ "--version" ];
-      smokePattern = "^file-[0-9]+\\.[0-9]+";
+      # CI runs the artifact renamed to smoke.exe, and file(1) prints
+      # argv[0] as the version prefix — so anchoring on the program name
+      # can never match there. This line also proves the embedded magic
+      # DB resolved, which the version string does not.
+      smokePattern = "magic file from \\(embedded\\)";
 
       engine = "unpin-llvm";
       multicall = {
