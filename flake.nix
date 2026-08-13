@@ -43,15 +43,9 @@
 
         postPatch = (old.postPatch or "") + ''
           echo "==> inject unpin-vfs core (self-EOF + zstd) for embedded magic.mgc"
-          cp ${./vfs.c}          src/vfs.c
-          cp ${./vfs.h}          src/vfs.h
-          cp ${./miniz.c}        src/miniz.c
-          cp ${./miniz.h}        src/miniz.h
-          cp ${./unpin_zstd.c}   src/unpin_zstd.c
-          cp ${./unpin_zstd.h}   src/unpin_zstd.h
-          cp ${./zstddeclib.c}   src/zstddeclib.c
-          cp ${./unpin_magic.c}  src/unpin_magic.c
-          cp ${./unpin_magic.h}  src/unpin_magic.h
+          cp ${lib.vfsCore}/*.c ${lib.vfsCore}/*.h src/
+          cp ${./unpin_magic.c} src/unpin_magic.c
+          cp ${./unpin_magic.h} src/unpin_magic.h
         '';
 
         # Precompile with $CC (the engine wrapper → bitcode, so they fold into
