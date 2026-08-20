@@ -88,6 +88,15 @@
         # ZIP (like the man pages).
         runtimeDataRoot = pkgs: "${magicDbFor pkgs}";
         windows = true;
+        # libmagic keeps the configured $datadir/misc/magic as its fallback
+        # database path. It is dead here: the db rides the embedded ZIP (the
+        # smoke pattern asserts "magic file from (embedded)"), and the base
+        # does not even install share/misc. Nix still counted the path as a
+        # runtime reference and dragged the base build behind a self-contained
+        # binary.
+        # `libgnurx` is the mingw regex library; what survives into the .exe is
+        # its `include` directory, a compile-time path with no run-time meaning.
+        removeReferences = [ "file-static" "file-x86_64-w64-mingw32" "libgnurx" ];
       };
 
       # PRISTINE VFS base (no embed). The magic.mgc runtime tree is embedded once,
