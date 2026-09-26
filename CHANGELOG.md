@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [5.47-2] - 2026-09-26
+
 ### Changed
 
 - The binary is about 12× smaller — 11.0 MB to 927 KB on Linux, 11.0 MB to
