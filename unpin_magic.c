@@ -7,9 +7,11 @@
  * reader and hands the buffer to magic_load_buffers().
  *
  * Only the EXPLICIT VFS api (unpin_vfs_open) on a virtual marker path is used --
- * served from an anonymous memfd, never through __real_open. So the four
- * __real_* symbols vfs.c's POSIX core references (its pass-through for paths NOT
- * under the mount) are satisfied here by thin libc shims, NOT by `ld --wrap`.
+ * served from a memfd on Linux, an mkstemp'd and unlinked file on macOS and a
+ * temp file on Windows, never through __real_open. On Linux, vfs.c's --wrap
+ * branch references four __real_* symbols (its pass-through for paths NOT under
+ * the mount); they are satisfied here by thin libc shims, NOT by `ld --wrap`.
+ * On macOS vfs.c calls libc directly and the shims are dead code.
  * That keeps the integration surgical: file's own open()/stat() are untouched,
  * and folding file into a mega multicall adds no global libc interception for
  * the other applets. */
@@ -60,11 +62,11 @@ int unpin_load_embedded_magic(void **bufp, size_t *lenp)
 	return 0;
 }
 
-/* vfs.c's POSIX core references __real_open/stat/lstat/access for the
- * pass-through of paths outside the mount. `ld --wrap` would resolve those to
- * libc; we don't use --wrap (see the file note above), so define them as direct
- * libc calls. They are never reached for our marker path (memfd), only linked
- * to satisfy the references. */
+/* vfs.c's --wrap branch (Linux) references __real_open/stat/lstat/access for
+ * the pass-through of paths outside the mount. `ld --wrap` would resolve those
+ * to libc; we don't use --wrap (see the file note above), so define them as
+ * direct libc calls. They are never reached for our marker path (memfd), only
+ * linked to satisfy the references; on macOS nothing references them. */
 #ifndef _WIN32
 int __real_open(const char *path, int flags, ...)
 {

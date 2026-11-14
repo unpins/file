@@ -1,10 +1,10 @@
 Load the compiled magic database from the embedded ZIP (Pattern 2).
 
-Upstream file expects $datadir/share/misc/magic.mgc on disk (or $MAGIC, or
+Upstream file expects $datadir/misc/magic.mgc on disk (or $MAGIC, or
 ~/.magic.mgc). For unpins we ship a single binary: magic.mgc rides the binary's
-single metadata/runtime ZIP at EOF (withRuntimeData), zstd-compressed (~340 KB
-vs ~10.6 MB raw -- the db is sparse and compresses ~31x). file.c::load() pulls
-it back via unpin_load_embedded_magic() (unpin_magic.c, on the unpin-vfs
+single metadata/runtime ZIP at EOF (runtimeEmbed/unpinEmbedWrap),
+zstd-compressed (~340 KB vs ~10.6 MB raw -- the db is sparse and compresses
+~31x). file.c::load() pulls it back via unpin_load_embedded_magic() (unpin_magic.c, on the unpin-vfs
 self-EOF reader) and hands the buffer to magic_load_buffers when no magic file
 is given on the command line and $MAGIC is unset; user-supplied -m or $MAGIC
 still go through the regular magic_load path so power users can override.
