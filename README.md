@@ -51,7 +51,7 @@ The [Releases](https://github.com/unpins/file/releases) page has standalone bina
 
 ## Build notes
 
-- **Windows** uses mingw. file only opens paths it receives on the command line — it doesn't enumerate directories — so the mingw cross builds cleanly without any wide-char filesystem shims.
+- **Windows** uses mingw. file only opens paths it receives on the command line — it doesn't enumerate directories — so the mingw cross builds cleanly without any wide-char filesystem shims. `-z`/`-Z` do not look inside compressed files on Windows: upstream builds all of its decompression only where `fork` exists, and Windows has none.
 - **Embedded magic database**: the compiled `magic.mgc` (10.7 MB, stored compressed) is baked into the binary, so there are no companion data files. file looks up its magic via the embedded buffer by default; `-m <path>` and `$MAGIC` still work for users who want to override. `--version` prints `magic file from (embedded)` to signal the embed path is in use.
 - **Tests**: file's test suite runs on native builds (0 failures under static-musl) and auto-skips on cross targets the build host can't execute. The harness builds its own `test` binary against `libmagic` + the in-tree magic db, so it's independent of the embedded-magic path the shipped `file` uses.
-- **No upstream features are disabled; no platforms are excluded.**
+- **Not included** (as in nixpkgs, which builds file with zlib only): the built-in bzip2, xz, zstd and lzip decompressors and the seccomp sandbox. `-z` reads gzip by itself and runs `bzip2`, `xz`, `zstd`, `lzip`, `lrzip` or `lz4` from your `PATH` for the other formats.
