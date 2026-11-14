@@ -9,12 +9,12 @@
   inputs.unpins-lib.url = "github:unpins/nix-lib";
 
   # magic.mgc (file's magic database) is not compiled into rodata — it rides the
-  # binary's EOF ZIP (withRuntimeData), zstd-compressed (~31x: 10.6 MB → 340 KB).
-  # file.c::load() reads it back via the unpin-vfs self-EOF reader. Keeping it
-  # out of rodata also keeps it out of the mega's bitcode module. See
-  # docs/runtime-data.md (Pattern 2). The Windows path is the same, in marker
-  # mode (mingw has no memfd → temp file); the marker #define is inert on Linux,
-  # so injectVfs is shared.
+  # binary's EOF ZIP, zstd-compressed (~31x: 10.6 MB → 340 KB), embedded after
+  # the build by runtimeEmbed (unpinEmbedWrap). file.c::load() reads it back via
+  # the unpin-vfs self-EOF reader. Keeping it out of rodata also keeps it out of
+  # the mega's bitcode module. See docs/runtime-data.md (Pattern 2). The Windows
+  # path is the same, in marker mode (mingw has no memfd → temp file); the
+  # marker #define is inert on Linux, so injectVfs is shared.
   outputs = { self, unpins-lib }:
     let
       lib = unpins-lib.lib;
@@ -135,7 +135,8 @@
           cross = lib.mingwStaticCross pkgs;
           libgnurxStatic = cross.windows.libgnurx.overrideAttrs (old: {
             # libgnurx's vintage glibc regex uses `bool` as a plain identifier,
-            # which GCC 15's default -std=gnu23 rejects. Pin the pre-C23 dialect.
+            # which a compiler defaulting to C23 (-std=gnu23) rejects. Pin the
+            # pre-C23 dialect.
             NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -std=gnu17";
             # libgnurx's Makefile force-links a DLL even under --disable-shared,
             # but the engine's mingw CRT has no DLL startup. file links regex
